@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const fetchuser = require('../middleware/fetchuser');
 require('dotenv').config();
 const JWT_SECRET = 'sceretKeyUsedforAuthencticationInotebook'
+
 //create a user using: post 'api/auth/create-user' deosn't require auth
 router.post('/create-user',[
     body('name','eneter a valid name min:3').isLength({ min: 3 }),
