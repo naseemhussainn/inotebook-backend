@@ -12,7 +12,7 @@ router.get('/fetch-all-notes',fetchuser,async (req , res)=>{
         const notesOfUser = await Notes.find({user:user});
         res.json(notesOfUser)
     } catch (error) {
-      return res.status(500).json({ errors: 'internal server error occured' }); 
+      return res.status(500).json({ errors: 'internal server error occured',error }); 
     }
 
 })
@@ -38,7 +38,7 @@ router.post('/add-notes',fetchuser,[
         });
         res.json(notes)
     } catch (error) {
-      return res.status(500).json({ errors: 'internal server error occured' });
+      return res.status(500).json({ errors: 'internal server error occured',error }); 
     }
 
 })
@@ -53,23 +53,24 @@ router.put('/update-notes/:id',fetchuser,[
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-        let newNote = {}
-        let {title,description,tag} = req.body;
-    
+        var newNote = {}
+        var {title,description,tag} = req.body;
         if(title){newNote.title = title }
         if(description){newNote.description = description }
         if(tag){newNote.tag = tag }
         var user = req.user;
-    
-        let note = await Notes.findById(req.params.id);
+
+        var note = await Notes.findById(req.params.id);
         if(note.user.toString() !== user){ res.status(401).send('invalid request')}
         var options = {
-            "returnDocument":"after"
-        }
-        let updatedNotes = await Notes.findByIdAndUpdate(req.params.id,newNote,options);
+            new: true
+          }
+        const filter = { _id: req.params.id };
+          console.log(newNote)
+        let updatedNotes = await Notes.findOneAndUpdate(filter,newNote,options);
         res.json(updatedNotes)
     } catch (error) {
-        return res.status(500).json({ errors: 'internal server error occured' });
+        return res.status(500).json({ errors: 'internal server error occured',error });
     }
 
 
@@ -88,7 +89,7 @@ router.delete('/delete-notes/:id',fetchuser,async (req , res)=>{
         let deletedNotes = await Notes.findByIdAndDelete(req.params.id);
         res.json(deletedNotes) 
     } catch (error) {
-        return res.status(500).json({ errors: 'internal server error occured' });
+        return res.status(500).json({ errors: 'internal server error occured',error });
     }
 
 
