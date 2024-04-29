@@ -15,13 +15,14 @@ router.post('/create-user',[
     body('password','enter avalid password min:5').isLength({ min: 5 }),
 ], async(req , res)=>{
     const errors = validationResult(req);
+    let sucsses =  false;
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ sucsses , errors: errors.array() });
     }
     try {
       let ExistUser = await User.find({ email: req.body.email })
       if(ExistUser.length != 0){
-        return res.status(400).json({ errors: 'sorry user already exist with this email' });
+        return res.status(400).json({ sucsses ,errors: 'sorry user already exist with this email' });
       }
       bcrypt.genSalt(10, function(err, salt) {
           bcrypt.hash(req.body.password , salt, function(err, hash) {
@@ -36,8 +37,8 @@ router.post('/create-user',[
               }
   
               const authToken = jwt.sign(data , JWT_SECRET);
-  
-              res.json({authToken})
+              sucsses=true;
+              res.json({sucsses,authToken})
   
           });
       });
@@ -53,26 +54,27 @@ router.post('/create-user',[
 //login a user using: post 'api/auth/login-user' deosn't require auth
 router.post('/login-user',[
   body('email','enter a valid email').isEmail(),
-  body('password','password cannot be blanl').exists(),
+  body('password','password cannot be blank').exists(),
 ], async(req , res)=>{
 
   try {
     const errors = validationResult(req);
+    let sucsses = false;
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ sucsses ,errors: errors.array() });
     }
     var email = req.body.email;
     var password = req.body.password;
     var user = await User.findOne({email})
   
     if(!user){
-      return res.status(400).json({ errors: 'please enter a valid mail or password' });
+      return res.status(400).json({sucsses, errors: 'please enter a valid mail or password' });
     }
   
     var crctPass =  await bcrypt.compare(password , user.password);
   
     if(!crctPass){
-      return res.status(400).json({ errors: 'please enter a valid mail or password' });
+      return res.status(400).json({sucsses, errors: 'please enter a valid mail or password' });
     }
   
     const data = {
@@ -80,8 +82,8 @@ router.post('/login-user',[
     }
   
     const authToken = jwt.sign(data , JWT_SECRET);
-  
-    res.json({authToken})
+    sucsses = true;
+    res.json({sucsses,authToken})
     
   } catch (error) {
     return res.status(500).json({ errors: 'internal server error occured' });
@@ -92,7 +94,7 @@ router.post('/login-user',[
 //get user a user using: post 'api/auth/get-user' deosn't require auth
 router.post('/get-user',fetchuser , async(req , res)=>{
   try {
-    userId = req.user;
+    var userId = req.user;
     const userData = await User.findById(userId).select('-password');
     res.json(userData);
   } catch (error) {
